@@ -1,0 +1,83 @@
+@page "/create-blog-post"
+@using MyArea
+<PageTitle>Create Blog Post</PageTitle>
+@inject MyArea.Data.ApplicationDbContext dbContext
+@inject Microsoft.AspNetCore.Components.NavigationManager navigationManager
+
+<h1>Create Blog Post</h1>
+
+<EditForm  Model="blogPost" OnValidSubmit="CreateBlogPost" FormName="BlogPostForm">
+    <label>
+        Title: 
+        <InputText @bind-Value="blogPost.Title" />
+    </label>
+    <label>
+        Description: 
+        <InputText @bind-Value="blogPost.Description" />
+    </label>
+    <label>
+        Content: 
+        <InputText @bind-Value="blogPost.Content" />
+    </label>
+    <label>
+        Image: 
+        <InputText @bind-Value="blogPost.ImageURL" />
+    </label>
+    <button type="submit">Submit</button> 
+
+    @* <div>
+        <label for="title">Title:</label>
+        <input type="text" id="title" @bind="blogPost.Title" />
+    </div>
+    <div>
+        <label for="description">Description:</label>
+        <input type="text" id="description" @bind="blogPost.Description" />
+    </div>
+    <div>
+        <label for="content">Content:</label>
+        <textarea id="content" @bind="blogPost.Content"></textarea>
+    </div> *@
+    <!-- Add more fields as needed -->
+
+    @* <button type="submit">Submit</button> *@
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public BlogPost? blogPost { get; set; }
+    private UserProfile? userProfile;
+
+     protected override async Task OnInitializedAsync()
+    {
+        userProfile = await dbContext.UserProfiles.FindAsync("1"); // Replace with the current user's ID
+        blogPost ??= new();
+    }
+
+    @* protected override void OnInitialized() => blogPost ??= new(); *@
+    private List<BlogPost> userBlogs;
+
+    [Parameter]
+    public EventCallback<BlogPost> OnBlogCreated { get; set; }
+
+
+    private async Task CreateBlogPost()
+    {
+        var post = new BlogPost
+        {
+            UserId = "1",
+            Title = blogPost.Title,
+            Description = blogPost.Description,
+            Content = blogPost.Content,
+            ImageURL = blogPost.ImageURL
+        };
+
+        dbContext.BlogPosts.Add(post);
+        await dbContext.SaveChangesAsync();
+
+        //clear cache, still not working
+        dbContext.ChangeTracker.Clear(); 
+
+        // Reload the user's blogs to include the new one
+        userBlogs = dbContext.BlogPosts.Where(blog => blog.UserId == userProfile.Id).ToList();
+    }
+}

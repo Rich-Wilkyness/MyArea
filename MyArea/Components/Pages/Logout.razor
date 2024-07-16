@@ -1,0 +1,37 @@
+@page "/logout"
+
+@using Microsoft.AspNetCore.Authentication
+@inject NavigationManager navigationManager
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body flex-column">
+                <div class="text-center">
+                    <h4 class="card-title">Logged Out</h4>
+                </div>
+                <div class="text-center mt-2">
+                    <span class="text-danger fw-bolder">You've successfully logged out of the application.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    override protected async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        // this checks if the user is authenticated before logging them out
+        if(HttpContext.User.Identity.IsAuthenticated) {
+            await HttpContext.SignOutAsync();
+            // redirect is also to reload components and clear user data from the page
+            // foreLoad: when set to true, causes the navigation to bypass the Blazor router and force the browser to load the new page from the server as if a traditional full page request was made
+            // This reloads the entire page and reinitializes the Blazor application. This might be necessary in scenarios where you want to completely reset the application state, integrate with non-Blazor parts of a larger application, or when navigating to an external URL that is not part of the Blazor routing system.
+            navigationManager.NavigateTo("/logout", true);
+        }
+    }
+}

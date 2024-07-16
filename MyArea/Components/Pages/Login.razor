@@ -1,0 +1,65 @@
+@page "/login" 
+
+@using User.Models
+@using MyArea.Data
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject ApplicationDbContext appDbContext
+@inject NavigationManager navigationManager
+
+<div class="row">
+    <div class="col-lg-4 offset-lg-4 pt-4 pb-4 border">
+        <EditForm Model="LoginModel" OnValidSubmit="Authenticate" FormName="LoginForm">
+            <DataAnnotationsValidator />
+            <div class="mb-3 text-center flex-column">
+                <h3>Login</h3>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <InputText class="form-control" @bind-Value="LoginModel.Email" />
+                <ValidationMessage For="@(() => LoginModel.Email)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <InputText class="form-control" @bind-Value="LoginModel.Password" />
+                <ValidationMessage For="@(() => LoginModel.Password)" />
+            </div>
+            <div class="mb-3 text-center">
+                <span class="text-danger">@errorMessage</span>
+            </div>
+            <div class="mb-3 d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Login</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    [SupplyParameterFromForm]
+    public LoginViewModel LoginModel { get; set; } = new();
+
+    private string? errorMessage;
+
+    private async Task Authenticate(){
+        var userProfile = appDbContext.UserProfiles.Where(x => x.Email == LoginModel.Email).FirstOrDefault();
+        if (userProfile == null || userProfile.Password != LoginModel.Password){
+            errorMessage = "Invalid email or password";
+            return;
+        }
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, userProfile.Email),
+            new Claim(ClaimTypes.Role, userProfile.Role)
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(principal);
+        navigationManager.NavigateTo("/");
+    }
+}    

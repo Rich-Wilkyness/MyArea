@@ -1,0 +1,31 @@
+.profile-page {
+    display: flex;
+    flex-direction: column;
+    border: 3px solid grey;
+    padding: 10px;
+    width: 30%;
+    text-align: center;
+}
+
+.profile-username, .profile-email, .profile-hobbies, .profile-image-upload {
+    padding: 15px;
+}
+
+.profile-image-upload {
+    border: 2px solid red;
+    text-align: center;
+}
+
+.create-blog-page {
+    border: 3px solid grey;
+    padding: 10px;
+    width: 30%;
+    text-align: center;
+}
+
+.blog-post {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+    border: 3px solid grey;
+}
